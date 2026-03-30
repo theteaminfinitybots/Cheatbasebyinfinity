@@ -22,7 +22,6 @@ class UserbotScraper:
         self.bot_logger = bot_logger
         self.media_handler = MediaHandler()
 
-        # Statistics
         self.stats = {
             "fetched": 0,
             "saved": 0,
@@ -30,7 +29,6 @@ class UserbotScraper:
             "last_error": None
         }
 
-        # Create userbot client
         self.client = Client(
             name=f"scraper_{user_id}",
             api_id=Config.API_ID,
@@ -39,13 +37,11 @@ class UserbotScraper:
         )
 
     async def start(self) -> bool:
-        """Start the userbot scraper"""
         try:
             await self.client.start()
             self.running = True
             logger.info(f"Userbot scraper started for user {self.user_id}")
 
-            # Get user info
             me = await self.client.get_me()
             username = me.username if me.username else "Unknown"
 
@@ -67,7 +63,6 @@ class UserbotScraper:
             return False
 
     async def stop(self):
-        """Stop the userbot scraper gracefully"""
         self.running = False
         logger.info(f"Stopping scraper for user {self.user_id}")
 
@@ -85,41 +80,37 @@ class UserbotScraper:
         except Exception as e:
             logger.error(f"Error stopping scraper: {e}")
 
-    async def fetch_inline_results(self, bot_username: str, query: str, offset: str = "") -> list:
-        """Fetch results from inline bot"""
+    async def fetch_inline_results(self, bot_username: str, offset: str = ""):
+        """Fetch results sequentially using offset (no keyword)"""
         try:
-            # Resolve bot
             bot = await self.client.resolve_peer(bot_username)
 
-            # Get inline results
             results = await self.client.invoke(
                 GetInlineBotResults(
                     bot=bot,
                     peer=await self.client.resolve_peer("me"),
-                    query=query,
+                    query="",  # no keyword
                     offset=offset
                 )
             )
 
-            return results.results if results else []
+            return results
 
         except FloodWait as e:
             await self.bot_logger.log_flood_wait(self.user_id, e.value)
             await asyncio.sleep(e.value)
-            return []
+            return None
 
         except Exception as e:
             logger.error(f"Error fetching inline results: {e}")
-            return []
+            return None
 
     async def send_inline_result(self, bot_username: str, query_id: int, result_id: str):
-        """Send inline bot result to target channel"""
         try:
             if not Config.TARGET_CHANNEL:
                 logger.warning("No target channel configured")
                 return None
 
-            # Send inline result
             message = await self.client.send_inline_bot_result(
                 chat_id=Config.TARGET_CHANNEL,
                 query_id=query_id,
@@ -138,9 +129,7 @@ class UserbotScraper:
             return None
 
     async def process_result(self, bot_username: str, result, query_id: int) -> bool:
-        """Process a single inline result"""
         try:
-            # Extract text/caption
             text = ""
             if hasattr(result, 'send_message'):
                 if isinstance(result.send_message, InputBotInlineMessageMediaAuto):
@@ -149,19 +138,16 @@ class UserbotScraper:
             if not text:
                 text = result.id
 
-            # Check if already exists (deduplication)
             if Card.exists(bot_username, text):
                 self.stats["skipped"] += 1
                 await self.bot_logger.log_duplicate_skip(bot_username, text)
                 return False
 
-            # Send to channel and get message
             message = await self.send_inline_result(bot_username, query_id, result.id)
 
             if not message:
                 return False
 
-            # Download media if present
             media_path = None
             media_type = None
 
@@ -169,10 +155,8 @@ class UserbotScraper:
             if media_result:
                 media_path, media_type = media_result
 
-            # Get file_id
             file_id = self.media_handler.get_file_id(message)
 
-            # Save to database
             card = Card(
                 user_id=self.user_id,
                 bot_name=bot_username,
@@ -197,82 +181,61 @@ class UserbotScraper:
             self.stats["last_error"] = str(e)
             return False
 
-    async def scrape_bot(self, bot_username: str, keywords: list):
-        """Scrape a specific inline bot with multiple keywords"""
-        for keyword in keywords:
-            if not self.running:
+    async def scrape_bot(self, bot_username: str):
+        """Scrape inline bot sequentially using offset"""
+        offset = ""
+
+        while self.running:
+            logger.info(f"Scraping {bot_username} with offset '{offset}'")
+
+            data = await self.fetch_inline_results(bot_username, offset)
+
+            if not data or not data.results:
                 break
 
-            logger.info(f"Scraping {bot_username} with keyword '{keyword}'")
+            query_id = data.query_id
 
-            results = await self.fetch_inline_results(bot_username, keyword)
-
-            if not results:
-                continue
-
-            # Get query_id for sending results
-            query_id = None
-            try:
-                bot = await self.client.resolve_peer(bot_username)
-                inline_results = await self.client.invoke(
-                    GetInlineBotResults(
-                        bot=bot,
-                        peer=await self.client.resolve_peer("me"),
-                        query=keyword,
-                        offset=""
-                    )
-                )
-                query_id = inline_results.query_id
-            except Exception as e:
-                logger.error(f"Error getting query_id: {e}")
-                continue
-
-            # Process each result
-            for result in results[:10]:  # Limit to 10 results per keyword
+            for result in data.results[:10]:
                 if not self.running:
                     break
 
                 self.stats["fetched"] += 1
                 await self.process_result(bot_username, result, query_id)
-
-                # Small delay between results
                 await asyncio.sleep(1)
 
-            # Delay between keywords
+            # move to next page
+            offset = data.next_offset if hasattr(data, "next_offset") else ""
+            if not offset:
+                break
+
             await asyncio.sleep(Config.SCRAPER_DELAY)
 
     async def run(self):
-        """Main scraping loop"""
         logger.info(f"Starting scraping loop for user {self.user_id}")
 
         while self.running:
             try:
-                # Scrape each configured bot
                 for bot_username in Config.INLINE_BOTS:
                     if not self.running:
                         break
 
-                    await self.scrape_bot(bot_username, Config.KEYWORDS)
+                    await self.scrape_bot(bot_username)
 
-                    # Update stats in database
                     User.update_stats(self.user_id, self.stats)
 
-                    # Log stats periodically
                     if self.stats["fetched"] % 50 == 0:
                         await self.bot_logger.log_stats(self.user_id, self.stats)
 
-                    # Delay between bots
                     await asyncio.sleep(Config.SCRAPER_DELAY)
 
-                # Delay before next full cycle
                 if self.running:
-                    logger.info(f"Cycle complete for user {self.user_id}. Waiting before next cycle...")
-                    await asyncio.sleep(60)  # 1 minute between cycles
+                    logger.info(f"Cycle complete for user {self.user_id}")
+                    await asyncio.sleep(60)
 
             except Exception as e:
                 logger.error(f"Error in scraping loop: {e}")
                 self.stats["last_error"] = str(e)
                 await self.bot_logger.log_error(self.user_id, str(e))
-                await asyncio.sleep(30)  # Wait 30 seconds on error
+                await asyncio.sleep(30)
 
         logger.info(f"Scraping loop stopped for user {self.user_id}")
