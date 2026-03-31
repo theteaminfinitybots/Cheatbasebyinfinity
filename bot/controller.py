@@ -50,7 +50,7 @@ class ControllerBot:
     async def send_welcome(self, chat_id: int):
     """Send welcome message with image + styled caption"""
 
-    video_url = "https://te.legra.ph/file/758a5cf4598f061f25963.jpg"
+    video_url = "https://files.catbox.moe/p9toct.mp4"
 
     welcome_text = (
         "<blockquote><b>✦ ˹ ɪɴꜰɪɴɪᴛʏ ꭙ ᴡᴧɪꜰᴜ ꜱᴄʀᴧᴘᴘєʀ ˼\n\n"
@@ -64,9 +64,9 @@ class ControllerBot:
         " ➻ ᴛᴧᴘ ʙєʟσω ᴛσ ꜱᴛᴧʀᴛ ʏσᴜʀ ɪηꜱᴛᴧηᴄє ✦</b></blockquote>"
     )
 
-    await self.app.send_photo(
+    await self.app.send_video(
         chat_id=chat_id,
-        photo=photo_url,
+        video=video_url,
         caption=welcome_text,
         parse_mode="markdown",
         reply_markup=self.get_main_menu()
