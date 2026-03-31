@@ -68,7 +68,6 @@ class ControllerBot:
             chat_id=chat_id,
             video=video_url,
             caption=welcome_text,
-            parse_mode="markdown",
             reply_markup=self.get_main_menu()
         )
 
