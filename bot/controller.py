@@ -48,29 +48,29 @@ class ControllerBot:
         ])
 
     async def send_welcome(self, chat_id: int):
-    """Send welcome message with image + styled caption"""
+        """Send welcome message with image + styled caption"""
 
-    video_url = "https://files.catbox.moe/p9toct.mp4"
+        video_url = "https://files.catbox.moe/p9toct.mp4"
 
-    welcome_text = (
-        "<blockquote><b>✦ ˹ ɪɴꜰɪɴɪᴛʏ ꭙ ᴡᴧɪꜰᴜ ꜱᴄʀᴧᴘᴘєʀ ˼\n\n"
-        " ʜєʟʟσ, — ᴡєʟᴄσϻє ᴛσ ᴘʀєϻɪᴜϻ ꜱᴧᴧꜱ ᴄσηᴛʀσʟ\n"
-        " ⊚ ᴧᴜᴛσϻᴧᴛєᴅ ᴡᴧɪꜰᴜ ᴄσʟʟєᴄᴛɪση ꜱʏꜱᴛєϻ\n"
-        " ✦ ꜰєᴧᴛᴜʀєꜱ:\n"
-        " • ɪηꜱᴛᴧηᴛ ꜱᴄʀᴧᴘᴘєʀ ᴅєᴘʟσʏϻєηᴛ\n"
-        " • ɪηʟɪηє ʙσᴛ ᴅᴧᴛᴧ ꜰєᴛᴄʜɪηɢ\n"
-        " • ꜱϻᴧʀᴛ ᴅᴜᴘʟɪᴄᴧᴛє ꜰɪʟᴛєʀ\n"
-        " • ʟɪᴠє ꜱᴛᴧᴛꜱ + ʟσɢꜱ\n\n"
-        " ➻ ᴛᴧᴘ ʙєʟσω ᴛσ ꜱᴛᴧʀᴛ ʏσᴜʀ ɪηꜱᴛᴧηᴄє ✦</b></blockquote>"
-    )
+        welcome_text = (
+            "<blockquote><b>✦ ˹ ɪɴꜰɪɴɪᴛʏ ꭙ ᴡᴧɪꜰᴜ ꜱᴄʀᴧᴘᴘєʀ ˼\n\n"
+            " ʜєʟʟσ, — ᴡєʟᴄσϻє ᴛσ ᴘʀєϻɪᴜϻ ꜱᴧᴧꜱ ᴄσηᴛʀσʟ\n"
+            " ⊚ ᴧᴜᴛσϻᴧᴛєᴅ ᴡᴧɪꜰᴜ ᴄσʟʟєᴄᴛɪση ꜱʏꜱᴛєϻ\n"
+            " ✦ ꜰєᴧᴛᴜʀєꜱ:\n"
+            " • ɪηꜱᴛᴧηᴛ ꜱᴄʀᴧᴘᴘєʀ ᴅєᴘʟσʏϻєηᴛ\n"
+            " • ɪηʟɪηє ʙσᴛ ᴅᴧᴛᴧ ꜰєᴛᴄʜɪηɢ\n"
+            " • ꜱϻᴧʀᴛ ᴅᴜᴘʟɪᴄᴧᴛє ꜰɪʟᴛєʀ\n"
+            " • ʟɪᴠє ꜱᴛᴧᴛꜱ + ʟσɢꜱ\n\n"
+            " ➻ ᴛᴧᴘ ʙєʟσω ᴛσ ꜱᴛᴧʀᴛ ʏσᴜʀ ɪηꜱᴛᴧηᴄє ✦</b></blockquote>"
+        )
 
-    await self.app.send_video(
-        chat_id=chat_id,
-        video=video_url,
-        caption=welcome_text,
-        parse_mode="markdown",
-        reply_markup=self.get_main_menu()
-    )
+        await self.app.send_video(
+            chat_id=chat_id,
+            video=video_url,
+            caption=welcome_text,
+            parse_mode="markdown",
+            reply_markup=self.get_main_menu()
+        )
 
     async def handle_add_session(self, callback_query: CallbackQuery):
         """Handle add session request"""
@@ -88,7 +88,7 @@ class ControllerBot:
             ])
         )
 
-     async def handle_status(self, callback_query: CallbackQuery):
+    async def handle_status(self, callback_query: CallbackQuery):
         """Handle status request"""
         user_id = callback_query.from_user.id
         user_data = User.find_by_id(user_id)
