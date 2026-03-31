@@ -88,7 +88,7 @@ class ControllerBot:
             ])
         )
 
-    async def handle_status(self, callback_query: CallbackQuery):
+     async def handle_status(self, callback_query: CallbackQuery):
         """Handle status request"""
         user_id = callback_query.from_user.id
         user_data = User.find_by_id(user_id)
