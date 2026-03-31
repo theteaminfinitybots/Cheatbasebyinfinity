@@ -36,31 +36,41 @@ class ControllerBot:
     def get_main_menu() -> InlineKeyboardMarkup:
         """Generate main menu keyboard"""
         return InlineKeyboardMarkup([
-            [InlineKeyboardButton("➕ Add Session", callback_data="add_session")],
-            [InlineKeyboardButton("🚀 Start Scraper", callback_data="start_scraper")],
-            [InlineKeyboardButton("🛑 Stop Scraper", callback_data="stop_scraper")],
-            [InlineKeyboardButton("📊 Status", callback_data="status")],
-            [InlineKeyboardButton("❌ Stop System", callback_data="stop_system")]
+            [
+                InlineKeyboardButton("ᴄʟσηє ꜱєꜱꜱɪση", callback_data="add_session"),
+                InlineKeyboardButton("ꜱᴛᴧʀᴛ ꜱᴄʀᴧᴘᴘєʀ", callback_data="start_scraper")
+            ],
+            [
+                InlineKeyboardButton("ꜱᴛσᴘ ꜱᴄʀᴧᴘᴘєʀ", callback_data="stop_scraper"),
+                InlineKeyboardButton("ʀєꜱᴜʟᴛꜱ", callback_data="status")
+            ],
+            [InlineKeyboardButton("ᴄσᴅєʀ", url="https://t.me/scriptyxx")],
         ])
 
     async def send_welcome(self, chat_id: int):
-        """Send welcome message with menu"""
-        welcome_text = (
-            "🤖 **Waifu Scraper SaaS Controller**\n\n"
-            "Welcome to the automated waifu scraping platform!\n\n"
-            "**Features:**\n"
-            "• Deploy your own scraper instance\n"
-            "• Auto-collect waifu images from inline bots\n"
-            "• Smart deduplication system\n"
-            "• Real-time stats and logging\n\n"
-            "Get started by adding your session!"
-        )
+    """Send welcome message with image + styled caption"""
 
-        await self.app.send_message(
-            chat_id=chat_id,
-            text=welcome_text,
-            reply_markup=self.get_main_menu()
-        )
+    video_url = "https://te.legra.ph/file/758a5cf4598f061f25963.jpg"
+
+    welcome_text = (
+        "<blockquote><b>✦ ˹ ɪɴꜰɪɴɪᴛʏ ꭙ ᴡᴧɪꜰᴜ ꜱᴄʀᴧᴘᴘєʀ ˼\n\n"
+        " ʜєʟʟσ, — ᴡєʟᴄσϻє ᴛσ ᴘʀєϻɪᴜϻ ꜱᴧᴧꜱ ᴄσηᴛʀσʟ\n"
+        " ⊚ ᴧᴜᴛσϻᴧᴛєᴅ ᴡᴧɪꜰᴜ ᴄσʟʟєᴄᴛɪση ꜱʏꜱᴛєϻ\n"
+        " ✦ ꜰєᴧᴛᴜʀєꜱ:\n"
+        " • ɪηꜱᴛᴧηᴛ ꜱᴄʀᴧᴘᴘєʀ ᴅєᴘʟσʏϻєηᴛ\n"
+        " • ɪηʟɪηє ʙσᴛ ᴅᴧᴛᴧ ꜰєᴛᴄʜɪηɢ\n"
+        " • ꜱϻᴧʀᴛ ᴅᴜᴘʟɪᴄᴧᴛє ꜰɪʟᴛєʀ\n"
+        " • ʟɪᴠє ꜱᴛᴧᴛꜱ + ʟσɢꜱ\n\n"
+        " ➻ ᴛᴧᴘ ʙєʟσω ᴛσ ꜱᴛᴧʀᴛ ʏσᴜʀ ɪηꜱᴛᴧηᴄє ✦</b></blockquote>"
+    )
+
+    await self.app.send_photo(
+        chat_id=chat_id,
+        photo=photo_url,
+        caption=welcome_text,
+        parse_mode="markdown",
+        reply_markup=self.get_main_menu()
+    )
 
     async def handle_add_session(self, callback_query: CallbackQuery):
         """Handle add session request"""
